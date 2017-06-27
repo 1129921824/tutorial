@@ -1,0 +1,79 @@
+本文在Deepin15.4中使用
+#首先修改hosts翻墙
+sudo wget https://raw.githubusercontent.com/sy618/hosts/master/FQ -O /etc/hosts
+
+#安装JDK，编译苏打用openjdk-8
+sudo apt-get install openjdk-8-jdk
+
+#安装需要的依赖
+sudo apt-get update && sudo apt-get install git-core gnupg flex bison gperf libsdl1.2-dev libesd0-dev libwxgtk3.0-dev squashfs-tools build-essential zip curl libncurses5-dev zlib1g-dev openjdk-8-jre openjdk-8-jdk pngcrush schedtool libxml2 libxml2-utils xsltproc lzop libc6-dev schedtool g++-multilib lib32z1-dev lib32ncurses5-dev gcc-multilib maven tmux screen w3m ncftp liblz4-tool pngquant
+
+#安装repo
+mkdir -p ~/bin
+curl https://storage.googleapis.com/git-repo-downloads/repo ~/bin/repo
+chmod a+x ~/bin/repo
+echo "export PATH=~/bin:$PATH" ~/.bashrc
+
+#创建源码文件夹并进入
+mkdir ~/SudaMod $ cd ~/SudaMod
+
+#初始化repo下载清单，默认下载SM3.1
+repo init -u git://github.com/SudaMod/android.git -b sm-3.1
+
+#开始同步源码
+repo sync -c -f -j8 --force-sync --no-clone-bundle
+
+#添加二×白403大佬的device
+#项目地址https://github.com/wzv5/android_device_zuk_z2_plus/blob/sm-3.1/z2_sm_manifest.xml
+进入源码目录
+mkdir -p .repo/local_manifests
+cd .repo/local_manifests
+wget https://raw.githubusercontent.com/wzv5/android_device_zuk_z2_plus/sm-3.1/z2_sm_manifest.xml
+
+#创建脚本文件sudamod.sh
+#!/bin/sh
+cd ~/SudaMod
+export USE_CCACHE=1
+export JACK_SERVER_VM_ARGUMENTS="-Xmx4g -Dfile.encoding=UTF-8 -XX:+TieredCompilation"
+export JAVA_OPTS="-Xmx4G -XX:-UseGCOverheadLimit"
+
+export SDCLANG=true
+export SDCLANG_PATH=/home/sunyuqiang/SudaMod/prebuilts/snapdragon/llvm-3.8/bin
+export SDCLANG_LTO_DEFS=/home/sunyuqiang/SudaMod/device/qcom/common/sdllvm-lto-defs.mk
+
+source build/envsetup.sh
+breakfast z2_plus
+
+#开始编译
+source sudamod.sh
+brunch z2_plus
+
+
+
+------------------------------------------------------------------
+打开.repo/local_manifest/***.xml文件，删掉里面的两行
+<project name="sudamod/android_vendor_extra-1" path="vendor/extra" remote="github" revision="cm-14.1-rootless"/>
+<project name="substratum/interfacer" path="packages/services/ThemeInterfacer" remote="github" revision="n-rootless"/>
+
+并且：
+rm -rf vendor/extra
+rm -rf packages/services/ThemeInterfacer
+
+测试
+<remove-project name="SudaMod/android_external_chromium-webview"/>
+<project path="external/chromium-webview" name="LineageOS/android_external_chromium-webview" groups="pdk" clone-depth="1" />
+
+干掉Jerry
+rm -rf packages/apps/Jelly
+make clean
+------------------------------------------------------------------
+
+------------------------------------------------------------------
+补充
+device是设备相关的配置，比如这个设备有没有摄像头、有几个物理按键、屏幕分辨率多少、音配输出参数是什么
+
+每次编译完成，不论是否成功，都执行一下
+./prebuilts/sdk/tools/jack-admin kill-server
+------------------------------------------------------------------
+
+
