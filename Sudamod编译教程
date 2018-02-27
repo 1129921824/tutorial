@@ -1,6 +1,6 @@
 本文在Deepin15.4中使用
 #首先修改hosts翻墙
-sudo wget https://raw.githubusercontent.com/sy618/hosts/master/FQ -O /etc/hosts
+sudo wget https://raw.githubusercontent.com/racaljk/hosts/master/hosts -O /etc/hosts
 
 #安装JDK，编译苏打用openjdk-8
 sudo apt-get install openjdk-8-jdk
